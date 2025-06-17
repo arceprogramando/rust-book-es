@@ -52,7 +52,7 @@ estas variantes para declarar el tipo de un valor entero.
 | 32-bit  | `i32`   | `u32`    |
 | 64-bit  | `i64`   | `u64`    |
 | 128-bit | `i128`  | `u128`   |
-| arch    | `isize` | `usize`  |
+| Dependiente de la arquitectura | `isize` | `usize`  |
 
 Cada variante puede ser *signed* (con signo) o *unsigned* (sin signo) y tiene
 un tamaño explícito. *Signed* y *unsigned* se refieren a si es posible que el
@@ -287,11 +287,13 @@ de corchetes:
 ```
 
 Los arreglos son útiles cuando desea que sus datos se asignen en el stack (pila)
-en lugar del heap (montículo) (hablaremos más sobre el stack y el heap en el
+en lugar del heap (montículo) al igual que los otros tipos que hemos visto hasta 
+ahora (hablaremos más sobre el stack y el heap en el 
 [Capítulo 4][stack-and-heap]<!-- ignore -->) o cuando desea asegurarse de que
 siempre tenga un número fijo de elementos. Sin embargo, un arreglo no es tan
 flexible como el tipo vector. Un *vector* es un tipo de colección similar
-proporcionado por la biblioteca estándar que *puede* crecer o reducir su tamaño.
+proporcionado por la biblioteca estándar que *puede* crecer o reducir su tamaño
+porque sus contenidos viven en el heap.
 Si no está seguro de si debe usar un arreglo o un vector, es probable que deba
 usar un vector. El [Capítulo 8][vectors]<!-- ignore --> discute los vectores en
 más detalle.
