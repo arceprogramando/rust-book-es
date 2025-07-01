@@ -238,7 +238,7 @@ for it to be borrowed from
 
 Se traduciría algo así como:
 
-````text
+```text
 el tipo de retorno de la función contiene un valor prestado, pero no hay ningún 
 valor que pueda ser prestado
 ```
