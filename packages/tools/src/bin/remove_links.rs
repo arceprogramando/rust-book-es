@@ -28,11 +28,11 @@ fn main() {
     // Search for the references we need to delete.
     let ref_regex = Regex::new(r"(?m)^\[([^\]]+)\]:\s.*\n").unwrap();
     let out = ref_regex.replace_all(&first_pass, |caps: &Captures<'_>| {
-        let capture = caps.get(1).unwrap().to_owned();
+        let capture = caps.get(1).unwrap();
 
         // Check if we've marked this reference for deletion ...
         if refs.contains(capture.as_str()) {
-            return "".to_string();
+            return String::new();
         }
 
         // ... else we put back everything we captured.

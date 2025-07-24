@@ -4,7 +4,7 @@ use std::io::Read;
 use regex::{Captures, Regex};
 
 fn main() {
-    write_md(remove_markup(read_md()));
+    write_md(&remove_markup(&read_md()));
 }
 
 fn read_md() -> String {
@@ -15,22 +15,23 @@ fn read_md() -> String {
     }
 }
 
-fn write_md(output: String) {
+fn write_md(output: &str) {
     print!("{output}");
 }
 
-fn remove_markup(input: String) -> String {
+fn remove_markup(input: &str) -> String {
     let filename_regex =
         Regex::new(r#"\A<span class="filename">(.*)</span>\z"#).unwrap();
     // Captions sometimes take up multiple lines.
     let caption_start_regex =
         Regex::new(r#"\A<span class="caption">(.*)\z"#).unwrap();
-    let caption_end_regex = Regex::new(r#"(.*)</span>\z"#).unwrap();
+    let caption_end_regex = Regex::new(r"(.*)</span>\z").unwrap();
     let regexen = [filename_regex, caption_start_regex, caption_end_regex];
 
+    #[allow(clippy::unnecessary_filter_map)]
     let lines: Vec<_> = input
-        .lines()
-        .flat_map(|line| {
+        .lines() 
+        .filter_map(|line| {
             // Remove our syntax highlighting and rustdoc markers.
             if line.starts_with("```") {
                 Some(String::from("```"))

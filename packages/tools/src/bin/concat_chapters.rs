@@ -48,7 +48,7 @@ fn match_files(
 ) -> Vec<(PathBuf, PathBuf)> {
     read_dir(source_dir)
         .expect("Unable to read source directory")
-        .filter_map(|maybe_entry| maybe_entry.ok())
+        .filter_map(Result::ok)
         .filter_map(|entry| {
             let source_filename = entry.file_name();
             let source_filename =
