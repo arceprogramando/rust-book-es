@@ -35,10 +35,10 @@ fn main() {
                                 path.display(),
                                 line_num,
                                 line
-                            )
+                            );
                         }
                         LintingError::UnableToOpenFile => {
-                            eprintln!("Unable to open {}.", path.display())
+                            eprintln!("Unable to open {}.", path.display());
                         }
                     }
                 }
@@ -93,13 +93,13 @@ where
                 Ok(())
             }
         })
-        .filter(|result| result.is_err())
+        .filter(Result::is_err)
         .map(|result| result.unwrap_err())
         .collect()
 }
 
 fn is_file_of_interest(path: &path::Path) -> bool {
-    path.extension().map_or(false, |ext| ext == "md")
+    path.extension().is_some_and(|ext| ext == "md")
 }
 
 fn is_line_of_interest(line: &str) -> bool {

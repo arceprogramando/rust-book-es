@@ -2,7 +2,7 @@ use std::io;
 use std::io::prelude::*;
 
 fn main() {
-    write_md(remove_hidden_lines(&read_md()));
+    write_md(&remove_hidden_lines(&read_md()));
 }
 
 fn read_md() -> String {
@@ -13,7 +13,7 @@ fn read_md() -> String {
     }
 }
 
-fn write_md(output: String) {
+fn write_md(output: &str) {
     print!("{output}");
 }
 
@@ -27,7 +27,7 @@ fn remove_hidden_lines(input: &str) -> String {
         }
 
         if !within_codeblock || (!line.starts_with("# ") && line != "#") {
-            resulting_lines.push(line)
+            resulting_lines.push(line);
         }
     }
 

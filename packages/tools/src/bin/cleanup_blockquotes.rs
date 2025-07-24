@@ -20,12 +20,12 @@ fn main() {
         buffer
     };
 
-    let fixed = cleanup_blockquotes(input);
+    let fixed = cleanup_blockquotes(&input);
     print!("{fixed}");
 }
 
-fn cleanup_blockquotes(input: String) -> String {
-    let normal_start = EXTRA_SPACE.replace_all(&input, ">");
+fn cleanup_blockquotes(input: &str) -> String {
+    let normal_start = EXTRA_SPACE.replace_all(input, ">");
     let sans_empty_leading = EMPTY_LEADING.replace_all(&normal_start, "\n\n");
     sans_empty_leading.to_string()
 }
@@ -42,7 +42,7 @@ mod tests {
     #[test]
     fn extra_space() {
         let input = " > Hello".to_string();
-        let actual = cleanup_blockquotes(input);
+        let actual = cleanup_blockquotes(&input);
         assert_eq!(actual, "> Hello");
     }
 
@@ -110,7 +110,7 @@ here, but `map` is more idiomatic.) In the body of the function we supply to
 a `String`. When all is said and done, we have an `Option<String>`.
 "#.to_string();
 
-        let actual = cleanup_blockquotes(input);
+        let actual = cleanup_blockquotes(&input);
         assert_eq!(
             actual,
             r#"

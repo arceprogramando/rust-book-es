@@ -8,7 +8,7 @@ use std::io::Read;
 use regex::{Captures, Regex};
 
 fn main() {
-    write_md(parse_links(parse_references(read_md())));
+    write_md(&parse_links(parse_references(&read_md())));
 }
 
 fn read_md() -> String {
@@ -19,32 +19,36 @@ fn read_md() -> String {
     }
 }
 
-fn write_md(output: String) {
+fn write_md(output: &str) {
     print!("{output}");
 }
 
-fn parse_references(buffer: String) -> (String, HashMap<String, String>) {
+fn parse_references(buffer: &str) -> (String, HashMap<String, String>) {
     let mut ref_map = HashMap::new();
     // FIXME: currently doesn't handle "title" in following line.
-    let re = Regex::new(r###"(?m)\n?^ {0,3}\[([^]]+)\]:[[:blank:]]*(.*)$"###)
-        .unwrap();
+    let re =
+        Regex::new(r"(?m)\n?^ {0,3}\[([^]]+)\]:[[:blank:]]*(.*)$").unwrap();
     let output = re
-        .replace_all(&buffer, |caps: &Captures<'_>| {
+        .replace_all(buffer, |caps: &Captures<'_>| {
             let key_def = caps.get(1).unwrap().as_str();
             let key = key_def.to_uppercase();
             let val = caps.get(2).unwrap().as_str().to_string();
-            if ref_map.insert(key, val).is_some() {
-                panic!("unexpected page had duplicate reference for {key_def}",);
-            }
-            "".to_string()
+
+            assert!(
+                ref_map.insert(key, val).is_none(),
+                "unexpected page had duplicate reference for {key_def}"
+            );
+
+            String::new()
         })
         .to_string();
     (output, ref_map)
 }
 
+#[allow(clippy::single_match_else)]
 fn parse_links((buffer, ref_map): (String, HashMap<String, String>)) -> String {
     // FIXME: check which punctuation is allowed by spec.
-    let re = Regex::new(r###"(?:(?P<pre>(?:```(?:[^`]|`[^`])*`?\n```\n)|(?:[^\[]`[^`\n]+[\n]?[^`\n]*`))|(?:\[(?P<name>[^]]+)\](?:(?:\([[:blank:]]*(?P<val>[^")]*[^ ])(?:[[:blank:]]*"[^"]*")?\))|(?:\[(?P<key>[^]]*)\]))?))"###).expect("could not create regex");
+    let re = Regex::new(r#"(?:(?P<pre>(?:```(?:[^`]|`[^`])*`?\n```\n)|(?:[^\[]`[^`\n]+[\n]?[^`\n]*`))|(?:\[(?P<name>[^]]+)\](?:(?:\([[:blank:]]*(?P<val>[^")]*[^ ])(?:[[:blank:]]*"[^"]*")?\))|(?:\[(?P<key>[^]]*)\]))?))"#).expect("could not create regex");
     let output = re.replace_all(&buffer, |caps: &Captures<'_>| {
         match caps.name("pre") {
             Some(pre_section) => pre_section.as_str().to_string(),
@@ -80,29 +84,25 @@ fn parse_links((buffer, ref_map): (String, HashMap<String, String>)) -> String {
 
 #[cfg(test)]
 mod tests {
-    fn parse(source: String) -> String {
+    fn parse(source: &str) -> String {
         super::parse_links(super::parse_references(source))
     }
 
     #[test]
     fn parses_inline_link() {
         let source =
-            r"This is a [link](http://google.com) that should be expanded"
-                .to_string();
+            r"This is a [link](http://google.com) that should be expanded";
         let target =
-            r"This is a link at *http://google.com* that should be expanded"
-                .to_string();
+            r"This is a link at *http://google.com* that should be expanded";
         assert_eq!(parse(source), target);
     }
 
     #[test]
     fn parses_multiline_links() {
         let source = r"This is a [link](http://google.com) that
-should appear expanded. Another [location](/here/) and [another](http://gogogo)"
-            .to_string();
+should appear expanded. Another [location](/here/) and [another](http://gogogo)";
         let target = r"This is a link at *http://google.com* that
-should appear expanded. Another location at */here/* and another at *http://gogogo*"
-            .to_string();
+should appear expanded. Another location at */here/* and another at *http://gogogo*";
         assert_eq!(parse(source), target);
     }
 
@@ -110,27 +110,23 @@ should appear expanded. Another location at */here/* and another at *http://gogo
     fn parses_reference() {
         let source = r"This is a [link][theref].
 [theref]: http://example.com/foo
-more text"
-            .to_string();
+more text";
         let target = r"This is a link at *http://example.com/foo*.
-more text"
-            .to_string();
+more text";
         assert_eq!(parse(source), target);
     }
 
     #[test]
     fn parses_implicit_link() {
         let source = r"This is an [implicit][] link.
-[implicit]: /The Link/"
-            .to_string();
+[implicit]: /The Link/";
         let target = r"This is an implicit at */The Link/* link.".to_string();
         assert_eq!(parse(source), target);
     }
     #[test]
     fn parses_refs_with_one_space_indentation() {
         let source = r"This is a [link][ref]
- [ref]: The link"
-            .to_string();
+ [ref]: The link";
         let target = r"This is a link at *The link*".to_string();
         assert_eq!(parse(source), target);
     }
@@ -138,8 +134,7 @@ more text"
     #[test]
     fn parses_refs_with_two_space_indentation() {
         let source = r"This is a [link][ref]
-  [ref]: The link"
-            .to_string();
+  [ref]: The link";
         let target = r"This is a link at *The link*".to_string();
         assert_eq!(parse(source), target);
     }
@@ -147,8 +142,7 @@ more text"
     #[test]
     fn parses_refs_with_three_space_indentation() {
         let source = r"This is a [link][ref]
-   [ref]: The link"
-            .to_string();
+   [ref]: The link";
         let target = r"This is a link at *The link*".to_string();
         assert_eq!(parse(source), target);
     }
@@ -157,8 +151,7 @@ more text"
     #[should_panic]
     fn rejects_refs_with_four_space_indentation() {
         let source = r"This is a [link][ref]
-    [ref]: The link"
-            .to_string();
+    [ref]: The link";
         let target = r"This is a link at *The link*".to_string();
         assert_eq!(parse(source), target);
     }
@@ -166,8 +159,7 @@ more text"
     #[test]
     fn ignores_optional_inline_title() {
         let source =
-            r###"This is a titled [link](http://example.com "My title")."###
-                .to_string();
+            r###"This is a titled [link](http://example.com "My title")."###;
         let target =
             r"This is a titled link at *http://example.com*.".to_string();
         assert_eq!(parse(source), target);
@@ -175,21 +167,20 @@ more text"
 
     #[test]
     fn parses_title_with_puctuation() {
-        let source =
-            r###"[link](http://example.com "It's Title")"###.to_string();
+        let source = r###"[link](http://example.com "It's Title")"###;
         let target = r"link at *http://example.com*".to_string();
         assert_eq!(parse(source), target);
     }
 
     #[test]
     fn parses_name_with_punctuation() {
-        let source = r###"[I'm here](there)"###.to_string();
+        let source = r###"[I'm here](there)"###;
         let target = r###"I'm here at *there*"###.to_string();
         assert_eq!(parse(source), target);
     }
     #[test]
     fn parses_name_with_utf8() {
-        let source = r###"[user’s forum](the user’s forum)"###.to_string();
+        let source = r###"[user’s forum](the user’s forum)"###;
         let target = r###"user’s forum at *the user’s forum*"###.to_string();
         assert_eq!(parse(source), target);
     }
@@ -197,8 +188,7 @@ more text"
     #[test]
     fn parses_reference_with_punctuation() {
         let source = r###"[link][the ref-ref]
-[the ref-ref]:http://example.com/ref-ref"###
-            .to_string();
+[the ref-ref]:http://example.com/ref-ref"###;
         let target = r###"link at *http://example.com/ref-ref*"###.to_string();
         assert_eq!(parse(source), target);
     }
@@ -206,16 +196,14 @@ more text"
     #[test]
     fn parses_reference_case_insensitively() {
         let source = r"[link][Ref]
-[ref]: The reference"
-            .to_string();
+[ref]: The reference";
         let target = r"link at *The reference*".to_string();
         assert_eq!(parse(source), target);
     }
     #[test]
     fn parses_link_as_reference_when_reference_is_empty() {
         let source = r"[link as reference][]
-[link as reference]: the actual reference"
-            .to_string();
+[link as reference]: the actual reference";
         let target = r"link as reference at *the actual reference*".to_string();
         assert_eq!(parse(source), target);
     }
@@ -223,8 +211,7 @@ more text"
     #[test]
     fn does_not_parse_link_without_reference_as_reference() {
         let source = r"[link] is alone
-[link]: The contents"
-            .to_string();
+[link]: The contents";
         let target = r"[link] is alone".to_string();
         assert_eq!(parse(source), target);
     }
@@ -233,8 +220,7 @@ more text"
     #[ignore]
     fn parses_link_without_reference_as_reference_with_asterisks() {
         let source = r"*[link]* is alone
-[link]: The contents"
-            .to_string();
+[link]: The contents";
         let target = r"*link* at *The contents* is alone".to_string();
         assert_eq!(parse(source), target);
     }
@@ -247,23 +233,21 @@ version = "0.1.0"
 
 [dependencies]
 ```
-"###
-        .to_string();
+"###;
         let target = source.clone();
         assert_eq!(parse(source), target);
     }
 
     #[test]
     fn ignores_links_in_quoted_sections() {
-        let source = r###"do not change `[package]`."###.to_string();
+        let source = r###"do not change `[package]`."###;
         let target = source.clone();
         assert_eq!(parse(source), target);
     }
     #[test]
     fn ignores_links_in_quoted_sections_containing_newlines() {
         let source = r"do not change `this [package]
-is still here` [link](ref)"
-            .to_string();
+is still here` [link](ref)";
         let target = r"do not change `this [package]
 is still here` link at *ref*"
             .to_string();
@@ -282,8 +266,7 @@ version = "0.1.0"
 Another [link][]
 more text
 [link]: http://gohere
-"###
-        .to_string();
+"###;
         let target = r###"```toml
 [package]
 name = "hello_cargo"
@@ -311,14 +294,13 @@ src/main.rs:23:21: 23:35 note:    found type `&_`
 error: aborting due to previous error
 Could not compile `guessing_game`.
 ```
-"###
-            .to_string();
+"###;
         let target = source.clone();
         assert_eq!(parse(source), target);
     }
     #[test]
     fn ignores_short_quotes() {
-        let source = r"to `1` at index `[0]` i".to_string();
+        let source = r"to `1` at index `[0]` i";
         let target = source.clone();
         assert_eq!(parse(source), target);
     }
@@ -338,7 +320,7 @@ note: `Point` cannot be formatted with the default formatter; try using `:?` ins
 note: required by `std::fmt::Display::fmt`
 ```
 `here` is another [link](the ref)
-"###.to_string();
+"###;
         let target = r###"```bash
 $ cargo run
    Compiling points v0.1.0 (file:///projects/points)
@@ -353,7 +335,7 @@ note: `Point` cannot be formatted with the default formatter; try using `:?` ins
 note: required by `std::fmt::Display::fmt`
 ```
 `here` is another link at *the ref*
-"###.to_string();
+"###;
         assert_eq!(parse(source), target);
     }
     #[test]
@@ -378,8 +360,7 @@ Some text to show that the reference links can follow later.
 
 [arbitrary case-insensitive reference text]: https://www.mozilla.org
 [1]: http://slashdot.org
-[link text itself]: http://www.reddit.com"###
-            .to_string();
+[link text itself]: http://www.reddit.com"###;
 
         let target = r###"I'm an inline-style link at *https://www.google.com*
 
@@ -398,8 +379,7 @@ http://www.example.com or <http://www.example.com> and sometimes
 example.com (but not on Github, for example).
 
 Some text to show that the reference links can follow later.
-"###
-            .to_string();
+"###;
         assert_eq!(parse(source), target);
     }
 }
