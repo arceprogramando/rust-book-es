@@ -26,16 +26,18 @@ fn write_md(output: &str) {
 fn parse_references(buffer: &str) -> (String, HashMap<String, String>) {
     let mut ref_map = HashMap::new();
     // FIXME: currently doesn't handle "title" in following line.
-    let re = Regex::new(r"(?m)\n?^ {0,3}\[([^]]+)\]:[[:blank:]]*(.*)$")
-        .unwrap();
+    let re =
+        Regex::new(r"(?m)\n?^ {0,3}\[([^]]+)\]:[[:blank:]]*(.*)$").unwrap();
     let output = re
         .replace_all(buffer, |caps: &Captures<'_>| {
             let key_def = caps.get(1).unwrap().as_str();
             let key = key_def.to_uppercase();
             let val = caps.get(2).unwrap().as_str().to_string();
 
-            assert!(ref_map.insert(key, val).is_none(), "unexpected page had duplicate reference for {key_def}");
-
+            assert!(
+                ref_map.insert(key, val).is_none(),
+                "unexpected page had duplicate reference for {key_def}"
+            );
 
             String::new()
         })
@@ -165,8 +167,7 @@ more text";
 
     #[test]
     fn parses_title_with_puctuation() {
-        let source =
-            r###"[link](http://example.com "It's Title")"###;
+        let source = r###"[link](http://example.com "It's Title")"###;
         let target = r"link at *http://example.com*".to_string();
         assert_eq!(parse(source), target);
     }

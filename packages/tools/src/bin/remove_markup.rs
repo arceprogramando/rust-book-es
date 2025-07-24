@@ -30,7 +30,7 @@ fn remove_markup(input: &str) -> String {
 
     #[allow(clippy::unnecessary_filter_map)]
     let lines: Vec<_> = input
-        .lines() 
+        .lines()
         .filter_map(|line| {
             // Remove our syntax highlighting and rustdoc markers.
             if line.starts_with("```") {
