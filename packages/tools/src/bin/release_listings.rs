@@ -83,7 +83,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             })?;
 
             // Copy all the cleaned files in the listing to the tmp directory
-            copy_cleaned_listing_files(listing_path, output_listing_dir)?;
+            copy_cleaned_listing_files(&listing_path, &output_listing_dir)?;
         }
     }
 
@@ -109,10 +109,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 // - anchor comments or snip comments
 // - empty `main` functions in `lib.rs` files used to trick rustdoc
 fn copy_cleaned_listing_files(
-    from: PathBuf,
-    to: PathBuf,
+    from: &Path,
+    to: &Path,
 ) -> Result<(), Box<dyn Error>> {
-    for item in fs::read_dir(&from).map_err(|e| {
+    for item in fs::read_dir(from).map_err(|e| {
         format!("Could not read_dir on '{}': {e}", from.display())
     })? {
         let item = item.map_err(|e| {
@@ -133,7 +133,7 @@ fn copy_cleaned_listing_files(
                         output_item.display()
                     )
                 })?;
-                copy_cleaned_listing_files(item_path, output_item)?;
+                copy_cleaned_listing_files(&item_path, &output_item)?;
             }
         } else {
             // Don't copy output files or files that tell update-rustc.sh not to format
