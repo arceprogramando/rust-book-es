@@ -134,7 +134,7 @@ versión estable es lanzada, la versión anterior llega al final de su vida úti
 
 ## Características inestables
 
-Hay alo más con este modelo de lanzamiento: características inestables.
+Hay algo más con este modelo de lanzamiento: características inestables.
 Rust utiliza una técnica llamada “indicadores de características” para
 determinar qué características están habilitadas en un lanzamiento dado. Si una
 nueva característica está en desarrollo activo, aterriza en `master`, y por lo
